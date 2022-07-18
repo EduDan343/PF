@@ -9,7 +9,10 @@ import {
   GET_FEEDBACK,
   GET_COMMENTS,
   DELETE_COMMENT,
+  POST_COMMENT,
   GET_USERS,
+  SEARCH_USER,
+  DELETE_USER,
   GET_SHOW,
   GET_ALL_SHOWS,
   AUTORIZADO,
@@ -120,11 +123,6 @@ function rootReducer(state = initialState, action) {
           ...state,
           comments: state.comments.filter(e=> e.id !== action.payload.id)
         }
-      case GET_USERS:
-        return {
-          ...state,
-          usuarios: action.payload
-        }
       case GET_ALL_SHOWS:
         return{
           ...state,
@@ -140,18 +138,47 @@ function rootReducer(state = initialState, action) {
       case EDIT_MOVIE:
         return{
           ...state,
-          refresh: !state.refresh
+          // refresh: !state.refresh
         }
-      case "POST_COMMENT":
-        return{
-          ...state
-        };
       case GET_SHOW:
         console.log(action.payload)
         return{
           ...state,
           show:action.payload
         }
+      case SEARCH_USER:
+        return {
+          ...state,
+          usuarios: action.payload
+        }
+      case DELETE_USER:
+        return {
+          ...state,
+        }
+    case GET_USERS:
+      return {
+        ...state,
+        usuarios: action.payload
+      }
+  
+    case POST_COMMENT:
+      console.log("sssssssssssssi")
+      return{
+        ...state,
+        refresh: !state.refresh
+      };
+
+    case GET_ALL_SHOWS:
+      return{
+        ...state,
+        shows:action.payload
+      }
+    case GET_SHOW:
+      console.log(action.payload)
+      return{
+        ...state,
+        show:action.payload
+      }
     default:
       return state;
   }
