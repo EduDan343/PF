@@ -1,5 +1,6 @@
 import {Router, Request, Response, NextFunction}  from 'express'
 import { PrismaClient, Prisma} from '@prisma/client'
+import bcrypt from 'bcrypt';
 
 
 const prisma = new PrismaClient()
@@ -11,7 +12,16 @@ const router = Router();
 router.get("/", async (req:Request, res:Response) =>{
     
     try{
-        const users = await prisma.user.findMany({})
+        const users = await prisma.user.findMany({
+            include: {
+                cart:  {
+                    include : {
+                        tickets: true,
+                        candy: true
+                    }
+                }
+            }
+        })
         res.json(users);
     
     }catch (error:any) {
@@ -23,7 +33,7 @@ router.get("/", async (req:Request, res:Response) =>{
 router.get("/searchUser", async (req: Request, res:Response) =>{
     try {
         const {username} = req.query;
-    console.log("esto es",req.query)
+        
             const searchName = await prisma.user.findMany({
                 where: {
                     username: {
@@ -33,7 +43,6 @@ router.get("/searchUser", async (req: Request, res:Response) =>{
                 }
              })
             res.json(searchName)
-        
         
     } catch (e:any) {
         res.status(404).json(e.message)
@@ -66,16 +75,17 @@ router.post("/createUser", async (req:Request, res:Response) =>{
 //http://localhost:3001/admin/updateUser
 router.put("/updateUser", async (req:Request, res:Response) =>{
     try{
-        const {username, email, role, id} = req.body;
-        
+        const {id, password, email} = req.body;
+        const hashedPassword = await bcrypt.hash(
+            password,
+            Number(process.env.SALT_ROUNDS)
+          );
         const updateUser = await prisma.user.updateMany({
             where: {
                 id: id
               },
               data: {
-                username:`${username}`,
-                email:`${email}`,
-                role: role,
+                password:`${hashedPassword}`,
               },
     })
     
@@ -83,14 +93,16 @@ router.put("/updateUser", async (req:Request, res:Response) =>{
     
     }catch(e:any){
         res.status(404).json(e.message)
+        console.log(e)
     }
 })
 
 //http://localhost:3001/admin/deleteUser
 router.delete("/deleteUser", async (req:Request, res:Response) =>{
+   
     try{
-        console.log(req.body)
         const {email} = req.body;
+        // console.log('esto es email',email)
 
         const deleteUser = await prisma.user.delete({
             where: {email:`${email}`},

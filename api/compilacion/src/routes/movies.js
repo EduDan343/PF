@@ -12,12 +12,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require('dotenv').config();
 const express_1 = require("express");
 const client_1 = require("@prisma/client");
 const stripe_1 = __importDefault(require("stripe"));
 const middlewares_1 = __importDefault(require("../middlewares/middlewares"));
 const prisma = new client_1.PrismaClient();
 const router = (0, express_1.Router)();
+const { STRIPE_KEY } = process.env;
 function isPremier(dateMovie) {
     let date = new Date();
     let [, m, d, y] = String(date).split(' ');
@@ -246,6 +248,7 @@ router.get("/search/:id", (req, res) => __awaiter(void 0, void 0, void 0, functi
                 }
             }
         });
+        console.log(movie);
         res.json(movie);
     }
     catch (e) {
@@ -299,42 +302,74 @@ router.get('/search', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 router.post("/checkout", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { ticket, amount, show, userId } = req.body;
-    console.log(show);
-    const stripe = new stripe_1.default("sk_test_51LKmPfJSzK67Ievut9CIjd8vY41BPktuezRzcVzIERjze7T5LEPDOmZ35auFdbt9mG5zTZFxXbsC0ZXTl96dPw4i00AaZ84pVQ", { apiVersion: "2020-08-27" });
-    const data = {
-        username: "Ignacio Brunello",
-        password: "1234",
-        role: 1
-    };
+    const { show, idUser, ticket } = req.body;
+    const cart = yield prisma.cart.findUnique({ where: { userId: idUser }, include: { candy: true, tickets: true } });
+    const stripe = new stripe_1.default(STRIPE_KEY, { apiVersion: "2020-08-27" });
+    console.log(cart);
     try {
         const payment = yield stripe.paymentIntents.create({
-            amount,
+            amount: cart.orderPrice,
             payment_method: ticket,
             currency: "USD",
             confirm: true,
         });
+        // console.log(payment)
         const sale = yield prisma.sale.create({ data: {
-                receipt: ticket,
-                userId: userId
+                receipt: payment.id,
+                // @ts-ignore
+                salePrice: cart.orderPrice,
+                user: {
+                    connect: { id: cart.userId }
+                }
             } });
-        const room = yield prisma.show.findUnique({ where: { id: show }, include: { room: { select: { id: true } } } });
-        // console.log(room?.room.id)
-        const seat = yield prisma.seat.findFirst();
-        // console.log(seat.id)
-        const newticket = yield prisma.ticket.createMany({
+        // const sale = await prisma.sale.create({data:{
+        //     receipt:ticket,
+        //     user:{
+        //         connect:{id:cart.userId}
+        //     }
+        // }})
+        const formatedSale = yield prisma.sale.update({
+            where: { id: sale.id },
             data: {
-                saleId: sale.id,
-                seatId: seat.id,
-                showId: show,
-                roomId: room.room.id
+                // @ts-ignore
+                dateFormat: String(sale.createdAt).slice(4, 15)
             }
         });
+        for (let i = 0; i < cart.candy.length; i++) {
+            const candy = yield prisma.candy.update({ where: { id: cart.candy[i].id }, data: { sale: { connect: { id: sale.id } }, cart: { disconnect: true } } });
+        }
+        for (let i = 0; i < cart.tickets.length; i++) {
+            //@ts-ignore
+            const tickets = yield prisma.tickets.update({ where: { id: cart.tickets[i].id }, data: { cart: { disconnect: true } } });
+        }
+        const room = yield prisma.show.findUnique({ where: { id: show }, include: { room: { select: { id: true } } } });
+        // console.log(room?.room.id)
+        // console.log(seat.id)
+        // const candy: any = await prisma.candy.findUnique({where:{id:"fdba5610-1559-4f15-9890-1da57ecb5c60"}})
+        const newticket = yield prisma.ticket.createMany({
+            //@ts-ignore
+            data: {
+                saleId: sale.id,
+                showId: show
+            }
+        });
+        const update = yield prisma.cart.update({ where: { id: cart.id }, data: { orderPrice: 0 } });
+        // console.log(update)
         // console.log(newticket)
         res.send("Payment received");
     }
     catch (error) {
         res.send(error.message);
+    }
+}));
+// http://localhost:3001/movies/getSales
+router.get('/getSales', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const sales = yield prisma.sale.findMany({ include: { user: true } });
+        return res.status(200).json(sales);
+    }
+    catch (error) {
+        return res.status(404).json("no se encontraron ventas");
     }
 }));
 exports.default = router;

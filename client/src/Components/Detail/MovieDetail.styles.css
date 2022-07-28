@@ -4,17 +4,37 @@
     box-sizing: border-box;
 }
 
-
+.MovieDetail{
+    position: relative;
+}
 
 .contenedor{
+    position: relative;
     width: 100%;
-    max-width: 75em;
+    /* max-width: 75em; */
+    /* max-width: 75vw; */
     margin:  auto;
     padding: 60px;
     margin-top: 20px;
+    /* margin-right: 250px; */
+    /* position: absolute;    */
     
-    
-    
+}
+#menu-btn{
+    position: absolute;
+    right: 5rem;
+}
+.Checkout-component{
+    position: absolute;
+    right: 0px;
+    /* height: 100px; */
+    /* z-index: 5; */
+}
+#checkout-active{
+    margin-right: 350px;
+}
+.sinopsis{
+    max-width: 75vw;
 }
 .title{
     font-size: 40px;
@@ -26,6 +46,7 @@
     width: 300px;
     float: left;
     margin-right: 20px;
+    margin-bottom: 42px;
 }
 .texto{
     font-size: 18px;
@@ -34,7 +55,7 @@
     
 }
 p{
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 .pg{
     display: inline;
@@ -49,25 +70,27 @@ p{
     background-color: rgb(255, 215, 0);
     color: rgb(0, 0, 0);
     text-decoration: none;
-    font-size: 20px;
+    font-size: 18px;
     
     padding: 5px 9px 5px 9px;
     margin-top: 10px;
     border-radius: 10px;
     font-weight: bold;
+    margin-bottom: 190px;
 }
 .trailer:hover{
     text-decoration: none;
-    color: black
+    color: black;
+    
 }
 
-.selectHora{
+.selectHora, .tipo, .selectIdioma{
     background-color:rgb(255, 215, 0);
     border: none;
     font-size: 14px;
     height: 30px;
     padding: 5px;
-    width: 100px;
+    
     border-radius: 10px;
     font-weight: bold;
     margin-top: 20px;
@@ -82,8 +105,9 @@ p{
     width: 120px;
     border-radius: 10px;
     font-weight: bold;
-    margin-top: 20px;
+    margin-top: 0px;
     margin-right: 20px;
+    text-transform: capitalize;
 }
 select:hover{
     cursor: pointer;
@@ -97,10 +121,137 @@ select:hover{
     width: 120px;
     border-radius: 10px;
     font-weight: bold;
-    margin-top: 20px;
+    margin-top: 10px;
     margin-right: 20px;
     }
 
 .botoncomprar:hover {
     cursor: pointer;
 }
+.botoncomprar2{
+    background-color: rgb(255, 215, 0);
+    border: none;
+    font-size: 14px;
+    height: 30px;
+    padding: 5px 8px 5px 10px;
+    width: 15%;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-right: 20px;
+    }
+
+    .botoncomprar2:hover {
+        cursor: pointer;
+    }
+.num{
+    text-align: center;
+    margin: 20px;
+    font-size: 30px;
+}
+.imgposter{
+    margin-right: 60px;
+    max-width: 100%;
+}
+.estrenopelicula{
+   color:  rgb(255, 215, 0);
+    font-size: 25px;
+    
+}
+.Checkout-component{
+    /* margin: 40px 0;
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    right: 40px; */
+    top: 130px;
+    z-index: 9999;
+    
+    border-color: rgb(255, 234, 0);
+    border-radius: 12px;
+}
+
+.botoncheck{
+    color: rgb(0, 0, 0);
+    top: 10px;
+    padding: 5px;
+    border: none;
+    position: absolute;
+    background-color: rgb(255, 234, 0);
+    right: 40px;
+    display: flex;
+    flex-direction:column;
+    z-index: 9999;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: 0.7s;
+    border-color: rgb(255, 234, 0);
+   
+}
+
+.botoncheck:hover, .botoncheck:focus{
+    border-color: rgb(99, 88, 26);
+    color: #000;
+    box-shadow: inset 11em 0 0 0 rgb(178, 164, 11);}
+
+    .botoncheck[disabled] {
+        background-color: #414442;
+        cursor: no-drop;
+    }
+
+.text-primary{
+    font-size: 16px;
+}
+.estrenocontenedor{
+    margin-bottom: 100px;
+}
+.modal-body{
+    padding: 2px;
+    /* background-color: #000 !important; */
+    border-color: #000 !important;
+}
+ .modal-header{
+   
+    border-color: #000 !important;
+ }
+
+.ratio-16x9{
+    background-color: #000;
+}
+.form-select{
+    width: 40%;
+}
+.mb-3{
+    margin-top: 0px !important;
+}
+.contenedorcomprar{
+    margin: 0;
+    padding: 0;
+}
+.contenedorp{
+    margin-top: 10px;
+}
+.closebutton2{
+    font-size: 16px; /* Cambiar el tamaño de la tipografia */
+      text-transform: uppercase; /* Texto en mayusculas */
+      font-weight: bold; /* Fuente en negrita o bold */
+      color: #e8f405; /* Color del texto */
+      border-radius: 5px; /* Borde del boton */
+      letter-spacing: 2px; /* Espacio entre letras */
+       /* Color de fondo */
+       /* Relleno del boton */
+       background-color: transparent;
+      position: absolute;
+      right: 40px;
+      transition: all 300ms ease 0ms;
+      border: none;
+      z-index: 99;
+  }
+  .closebutton2:hover{
+     /* Color de fondo al pasar el cursor */
+     
+      transform: translateY(-7px);
+  }
+  
+  

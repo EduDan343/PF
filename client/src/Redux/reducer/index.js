@@ -17,7 +17,22 @@ import {
   GET_ALL_SHOWS,
   AUTORIZADO,
   DELETE_MOVIE,
-  EDIT_MOVIE
+  EDIT_MOVIE,
+  ADD_CANDY,
+  GET_CANDY,
+  SEARCH_CANDY,
+  GET_TICKETS,
+  GET_TICKETS_HISTORY,
+  SEARCH_MOVIES_SALES,
+  VERIFY_ROLE,
+  TOTAL,
+  ENTRADAS,
+  GET_CART,
+  GET_DAY_SHOW,
+  REFRESH,
+  TOTALMENTE,
+  POST_PAYMENT_METHOD,
+  DEL_TICKET
 } from "../actions";
 
 const initialState = {
@@ -28,14 +43,87 @@ const initialState = {
   feedback:[],
   comments:[],
   refresh: false,
+  copy_usuarios:[],
   usuarios:[],
   shows:[],
   show:[],
+  infoTickets:[],
+  copy_infoTickets:[],
+  candy:[],
   autorizado: '',
+  storeCandy:[],
+  role: 'guest',
+  total: 0,
+  entradas: 0,
+  id:'',
+  cart: [],
+  payment:'',
+  tickets:[]
 };
 
 function rootReducer(state = initialState, action) {
   switch (action.type) {
+    case DEL_TICKET:
+      return{
+        ...state,
+        tickets: []
+      }
+
+    case GET_TICKETS_HISTORY:
+      return{
+        ...state,
+        tickets: action.payload
+      }
+
+    case GET_CART:
+      return{
+        ...state,
+        cart: action.payload
+      }
+
+    case ENTRADAS:
+      return{
+        ...state,
+        entradas: action.payload
+      }
+
+    case TOTALMENTE:
+      return{
+        ...state,
+        total: action.payload
+      }
+
+    case ADD_CANDY:
+      return{
+        ...state,
+        candy: state.candy.concat(action.payload)
+        // candy: [...state.candy, action.payload]
+      }
+
+    case GET_CANDY:
+      return{
+        ...state,
+        storeCandy: action.payload
+      }
+    
+    case SEARCH_CANDY:
+      return{
+        ...state,
+        storeCandy: action.payload
+      }
+
+    case GET_TICKETS:
+      return {
+        ...state,
+        infoTickets: action.payload,
+        copy_infoTickets: action.payload
+      }
+    case SEARCH_MOVIES_SALES:
+      const searchSale = state.copy_infoTickets.filter(e=>e.movie.toLowerCase().include(action.payload.toLowerCase()))
+      return {
+        ...state,
+        infoTickets: searchSale,
+      }
     case AUTORIZADO:
       return {
         ...state,
@@ -50,7 +138,7 @@ function rootReducer(state = initialState, action) {
       };
     case FILTER_TYPE:
       const carteleraToFilter = state.cartelera;
-      console.log(carteleraToFilter);
+      // console.log(carteleraToFilter);
       const filteredByType =
         action.payload === "All"
           ? carteleraToFilter
@@ -128,6 +216,12 @@ function rootReducer(state = initialState, action) {
           ...state,
           shows:action.payload
         }
+      case GET_DAY_SHOW:
+        // console.log(action.payload)
+        return{
+          ...state,
+          day:action.payload
+        }
       case DELETE_MOVIE:
           return{
             ...state,
@@ -141,7 +235,7 @@ function rootReducer(state = initialState, action) {
           // refresh: !state.refresh
         }
       case GET_SHOW:
-        console.log(action.payload)
+        // console.log(action.payload)
         return{
           ...state,
           show:action.payload
@@ -158,7 +252,7 @@ function rootReducer(state = initialState, action) {
     case GET_USERS:
       return {
         ...state,
-        usuarios: action.payload
+        usuarios: action.payload,
       }
   
     case POST_COMMENT:
@@ -167,17 +261,26 @@ function rootReducer(state = initialState, action) {
         ...state,
         refresh: !state.refresh
       };
-
-    case GET_ALL_SHOWS:
+    case VERIFY_ROLE:
+    return{
+      ...state,
+      role: action.payload.role,
+      id: action.payload.id
+    }
+    case REFRESH:
+      return {
+        ...state,
+        refresh: !state.refresh
+        }
+    case GET_CANDY:
       return{
         ...state,
-        shows:action.payload
+        candy: action.payload
       }
-    case GET_SHOW:
-      console.log(action.payload)
+    case POST_PAYMENT_METHOD:
       return{
         ...state,
-        show:action.payload
+        payment: action.payload
       }
     default:
       return state;

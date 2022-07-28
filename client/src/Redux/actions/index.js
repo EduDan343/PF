@@ -21,6 +21,21 @@ export const AUTORIZADO = 'AUTORIZADO';
 export const DELETE_SHOW="DELETE_SHOW"
 export const DELETE_MOVIE="DELETE_MOVIE";
 export const EDIT_MOVIE="EDIT_MOVIE";
+export const ADD_CANDY="ADD_CANDY";
+export const GET_CANDY="GET_CANDY";
+export const SEARCH_CANDY="SEARCH_CANDY";
+export const TOTAL="TOTAL";
+export const ENTRADAS="ENTRADAS";
+export const VERIFY_ROLE='VERIFY_ROLE';
+export const GET_CART="GET_CART";
+export const POST_CANDYS="POST_CANDYS";
+export const GET_DAY_SHOW="GET_DAY_SHOW"
+export const TOTALMENTE='TOTALMENTE';
+export const DEL_TICKET="DEL_TICKET"
+export const GET_TICKETS_HISTORY="GET_TICKETS_HISTORY"
+export const GET_TICKETS="GET_TICKETS";
+export const SEARCH_MOVIES_SALES ="SEARCH_MOVIES_SALES";
+export const REFRESH='REFRESH'
 
 
 export function getBillboard() {
@@ -107,11 +122,11 @@ export function searchMovieName(title){
       }
 
     }
-    export function postPaymentMethod(ticket,show,userId){
-      console.log(userId)
+    export function postPaymentMethod(ticket,show,idUser){
+      // console.log(userId)
       return async function (dispatch){
         try{
-          var json = await axios.post("http://localhost:3001/movies/checkout",{ticket,amount:100,show:show,userId})
+          var json = await axios.post("/movies/checkout",{ticket,show,idUser})
           console.log(json.data)
           return dispatch({
             type:POST_PAYMENT_METHOD,
@@ -155,14 +170,14 @@ export function autorizado () {
 
 // export function postMovie(payload) {
 //   return async function (dispatch) {
-//     const logged = await axios.get("http://localhost:3001/auth/verify", {
+//     const logged = await axios.get("/auth/verify", {
 //       headers: {
 //         Authorization: `Bearer ${window.localStorage.getItem("sw-token")}`,
 //       },
 //     });
 //     console.log("aca toi");
 //     try {
-//       await axios.post("http://localhost:3001/movies/createMovie", payload, {
+//       await axios.post("/movies/createMovie", payload, {
 //         headers: {
 //           Authorization: `Bearer ${window.localStorage.getItem("sw-token")}`,
 //         },
@@ -174,9 +189,9 @@ export function autorizado () {
 // }
 
 export function postMovie(payload){
-  console.log("hola")
+  // console.log("hola")
   return async function(dispatch){
-    console.log(payload)
+    // console.log(payload)
     try {
       const Authorization = {
         headers : {
@@ -184,7 +199,7 @@ export function postMovie(payload){
         }
       }
       const json = await axios.post('/movies/createMovie', payload, Authorization);
-      console.log("prueba console.log");
+      // console.log("prueba console.log");
       return dispatch ({
         type: POST_MOVIE,
         payload: json.data
@@ -234,7 +249,7 @@ export function getComments(){
 
 export function deleteComment(id){
   return async function(dispatch){
-    console.log(id)
+    // console.log(id)
     var json = await axios.delete(`/comments/delete/${id}`);
     return dispatch ({
       type: DELETE_COMMENT,
@@ -246,7 +261,7 @@ export function deleteComment(id){
 export function getShow(movieId){
   return async function(dispatch){
     try{
-      const json = await axios.get('http://localhost:3001/show/one/'+movieId)
+      const json = await axios.get('/show/one/'+movieId)
       // console.log(json.data)
       return dispatch({
         type: GET_SHOW,
@@ -258,12 +273,27 @@ export function getShow(movieId){
   }
 }
 
+export function getDayShow(day,id){
+  return async function(dispatch){
+    try{
+      const json = await axios.get(`/show/day?day=${day}&id=${id}`)
+      return dispatch({
+        type:GET_DAY_SHOW,
+        payload:json.data
+      })
+    }catch(err){
+      console.log(err)
+    }
+  }
+}
+
 export function deleteShow(movieId){
   return async function(dispatch){
     try{
-      const json = await axios.delete('http://localhost:3001/show/one/'+movieId)
+      const json = await axios.delete('/show/one/'+movieId)
       // console.log(json.data)
-      console.log(json.data)
+      // console.log(json.data)
+      return json.data
     }catch(error){
       console.log(error)
     }
@@ -273,7 +303,7 @@ export function deleteShow(movieId){
 export function getAllShows(){
   return async function(dispatch){
     try{
-      const json = await axios.get('http://localhost:3001/show/all')
+      const json = await axios.get('/show/all')
       return dispatch({
         type: GET_ALL_SHOWS,
         payload:json.data
@@ -284,11 +314,13 @@ export function getAllShows(){
   }
 }
 
-export function postShow(schedule,movieId,roomId){
+export function postShow(data){
+  console.log("PostShow",{data})
+  // console.log(data)
   return async function(){
     try{
-      const json = await axios.post('http://localhost:3001/show',{schedule,movieId,roomId})
-      console.log(json.data)
+      const json = await axios.post('/show',{data})
+      // console.log(json.data)
     }catch(error){
       console.log(error)
     }
@@ -330,10 +362,11 @@ export function getUsers(){
     return dispatch ({type: GET_USERS, payload: get_Usuarios.data})
   }
 }
+
 export function searchUser(name){
   return async function (dispatch) {
       try {
-        var search = await axios.get(`http://localhost:3001/admin/searchUser?username=${name}`)
+        var search = await axios.get(`/admin/searchUser?username=${name}`)
         return dispatch({
           type: SEARCH_USER,
           payload: search.data
@@ -355,7 +388,7 @@ export function deleteUser(email){
             body: JSON.stringify(email)
         };
   
-    var userDelete = fetch("http://localhost:3001/admin/deleteUser",requestOptions)
+    var userDelete = fetch("/admin/deleteUser",requestOptions)
     .then(data => data.json())
       .then(json => {
           dispatch({ type: DELETE_USER, payload: json})
@@ -366,7 +399,7 @@ export function deleteUser(email){
 
 export function createUser(user){
   return async function(dispatch){
-      const data = await axios.post("http://localhost:3001/admin/createUser", user)
+      const data = await axios.post("/auth/register", user)
       return data;
   }
 }
@@ -374,8 +407,8 @@ export function createUser(user){
 export function updateUser(data){
   
   return async function(dispatch){
-    console.log(data)
-    var updateDelete = await axios.put("http://localhost:3001/admin/updateUser",data);
+    // console.log(data)
+    var updateDelete = await axios.put("/admin/updateUser",data);
     return updateDelete
   }
 }
@@ -389,7 +422,7 @@ export function updateUser(data){
 //   };
 
 //   return function (dispatch){
-//       return fetch('http://localhost:3001/movies/createMovie', requestOptions)
+//       return fetch('/movies/createMovie', requestOptions)
 //       .then(data => data.json())
 //       .then(json => {
 //           dispatch({ type: POST_MOVIE, payload: json})
@@ -430,4 +463,228 @@ export function register(payload){
           console.log(error)
       }
   }
+}
+
+export function addCandy(payload){
+  return async function(dispatch){
+    return dispatch({
+      type: ADD_CANDY,
+      payload: payload
+    })
+  }
+}
+
+export function getCandy(){
+  return async function(dispatch){
+    const candys = await axios.get('/candy')
+    return dispatch({
+      type: GET_CANDY,
+      payload: candys.data
+    })
+  }
+}
+
+export function verifyRole(){
+  return async function(dispatch){
+    const data = await axios.get('/auth/verifyrole' , {
+      headers : {
+        Authorization : `Bearer ${window.localStorage.getItem('sw-token')}`
+      }
+    })
+    return dispatch({
+      type: VERIFY_ROLE,
+      payload: {role: data.data.role,
+                id: data.data.id}
+    })
+  }
+}
+
+export function sumTotal(payload){
+  return async function(dispatch){
+    return dispatch({
+      type: TOTAL,
+      payload: payload
+    })
+  }
+}
+
+export function sumEntradas(payload){
+  return async function(dispatch){
+    // console.log("info SumEntradas: ", payload);
+    const resp = await axios.post('/tickets/addTickets', payload)
+    // console.log("respuesta Tickets:",resp);
+    return dispatch({
+      type: ENTRADAS,
+      payload: payload.seats
+    })
+  }
+}
+
+export function getCardHistory(idUser){
+  return async function(dispatch){
+    // console.log("estoy en actions " + idUser);
+    var getCart = await axios.post(`/cart`, idUser)
+    return dispatch({
+      type: GET_CART,
+      payload: getCart.data
+    })
+  }
+}
+
+export function getTicketsHistory(idUser){
+  return async function(dispatch){
+    console.log("estoy en actions/getTicketsHistory ", idUser);
+    let getTickets = await axios.post(`/cart/tickets`, idUser);
+    console.log("estoy en actions/getTicketsHistory RESPUESTA", getTickets.data)
+    return dispatch({
+      type: GET_TICKETS_HISTORY,
+      payload: getTickets.data
+    })
+  }
+}
+
+//Ruta post que almacena los candys con el usuario en especifico
+export function postCandys(payload){
+
+  return async function(dispatch){
+    try {
+      console.log("soy payload candy",payload)
+      let candyPost = await axios.post('/candy/add', payload)
+      return console.log("dispatch candyPost " + JSON.stringify(candyPost))
+    } catch (error) {
+      console.log(error)
+    }
+  }
+}
+
+export function deleteCandys(payload){
+  return async function(dispatch){
+    try {
+      await axios.post('/candy/delete', payload)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+}
+
+export function getOrderPrice(payload){
+  return async function(dispatch){
+    try {
+      const userCart = await axios.post('/cart/userCart', payload)
+      
+      return dispatch({
+        type: TOTALMENTE,
+        payload: userCart.data.orderPrice
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+}
+
+export function delTickets(payload){
+  return async function(dispatch){
+    try {
+      console.log("estoy en actions/delTIckets ", payload);   
+      const delTicket = await axios.post("/tickets/delete", payload)
+      console.log("estoy en actions/delTickets RESPUESTA", delTicket.data)
+      return dispatch({
+        type: DEL_TICKET,
+        payload: delTicket.data
+      })
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+}
+
+export function addToNewsletter (email) {
+  return  function(dispatch){
+    const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(email)
+        };
+  
+    var addtoNews = fetch('/mailing/newsletter', requestOptions)
+    .then(alert('El usuario ha sido añadido al newsletter'))
+
+    .catch(err => console.log(err))
+  }
+}
+
+// export function recuperarPassword (email) {
+//   return function (dispatch) {
+//     const requestOptions = {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(email)
+//   };
+
+//     var recuperarPass = fetch('/mailing/recuperarpassword', requestOptions)
+//     .then(response => {
+//       alert('Se han enviado los datos para recuperar la cuenta al usuario')
+//     })
+//     .catch(error => {
+//       alert('Ha habido un error. Intentar nuevamente.')
+//     })
+//   }
+// }
+
+export function recuperarPassword (email) {
+  return async function (dispatch) {
+    try {
+      const response = await axios.post('/mailing/recuperarpassword', email)
+      alert('El mail ha sido enviado a la casilla indicada.')
+      return dispatch ({
+        type: REFRESH,
+        
+      })
+    } catch (error) {
+      alert('Error al verificar casilla. Intente nuevamente.')
+    }
+    
+  }
+}
+
+
+export function searchCandy(name){
+  return async function (dispatch) {
+      try {
+        var search = await axios.get(`/candy/searchCandy?name=${name}`)
+        return dispatch({
+          type: SEARCH_CANDY,
+          payload: search.data
+        })
+      } catch (error) {
+        dispatch({
+          type: SEARCH_CANDY,
+          payload: []
+        })
+      }
+    }
+}
+
+export function getTicketsSales(){
+  return async function (dispatch) {
+      try {
+        var tickets = await axios.get('/tickets/all')
+        return dispatch({
+          type: GET_TICKETS,
+          payload: tickets.data
+        })
+      } catch (error) {
+        dispatch({
+          type: GET_TICKETS,
+          payload: []
+        })
+      }
+    }
+}
+
+export function searchMoviesSales(payload) {
+  return {
+    type: SEARCH_MOVIES_SALES,
+    payload,
+  };
 }

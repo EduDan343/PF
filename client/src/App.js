@@ -14,7 +14,17 @@ import Error404 from './Components/Error404/Error404';
 import CreateMovie from './Components/CreateMovie/CreateMovie';
 import Register from './Components/Register/Register';
 import Perfil from './Components/Profile/Profile';
+import Candy from './Components/Candy/Candy';
+import CashRegister from './Components/Cash Register/CashRegister';
 import { Redirect } from 'react-router-dom';
+import Chatbot from 'react-chatbot-kit'
+import 'react-chatbot-kit/build/main.css'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+import {Checkout} from './Components/Checkout/Checkout'
+import {ComprarModal} from './Components/Checkout/CandysModal'
+import ChangePassword from './Components/ChangePassword/ChangePassword';
 
 const stripePromise = loadStripe("pk_test_51LKmPfJSzK67IevuPbWPySSkTZkbIKMk89qalSxH06sTUPsU8UeojNRIT11QhjW7yheUsm4BBjtkYc2jD6Q9O8KQ00IWWYeOtN")
 
@@ -22,6 +32,7 @@ const stripePromise = loadStripe("pk_test_51LKmPfJSzK67IevuPbWPySSkTZkbIKMk89qal
 function App() {
   return (
     <Elements stripe={stripePromise}>
+    <ToastContainer />
     <BrowserRouter>
       {/* <NavBar /> */}
 
@@ -35,9 +46,14 @@ function App() {
         <Route exact path='/movies/:id' component={MovieDetail}/>
         <Route exact path='/create' component={CreateMovie} />
         <Route exact path='/admin' component={MenuDashboard} />          
-        <Route exact path="/feedback/:id" component={CreateFeedback}/>
+        <Route exact path="/feedback" component={CreateFeedback}/>
         <Route exact path='/profile' component={Perfil}/>
         <Route exact path='/register' component={Register}/>
+        <Route exact path='/Checkout' component={Checkout} />
+        <Route exact path='/CandyModal' component={ComprarModal} />
+        <Route exact path='/candy' component={Candy}/>
+        <Route exact path='/caja' component={CashRegister}/>
+        <Route exact path='/changepassword' component={ChangePassword}/>
         <Route path='*' component={Error404} />
       </Switch>
     </BrowserRouter>

@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import  verifyToken  from '../middlewares/middlewares';
+import { CreatedAt } from 'sequelize-typescript';
 
 
 const prisma = new PrismaClient()
@@ -21,22 +22,44 @@ router.post('/register', async (req:Request, res:Response) => {
             // @ts-ignore 
             where: { email: email }
         })
-    
         if ( user ) {
             return res.status(400).send({ error: 'User already exists' });
         }
-    
+        
+        // const fecha:any = new Date()
         //Adding user to database
-        const newUser = await prisma.user.create({
+        const newUser: any = await prisma.user.create({
+            
             // @ts-ignore
-            data: { username: username , email: email ,password: hashedPassword, role: role }
+            data: { username: username , email: email ,password: hashedPassword, role: role}
         });
+        // @ts-ignore
+        
+        const formatedUser = await prisma.user.update({
+            where: {username: username},
+            data : {
+                // @ts-ignore
+                dateFormat : String(newUser.createdAt).slice(4,15)
+            }
+        })
+        console.log('este es el 34', newUser);
+        //Adding new Cart to new User
+        const theuser :any= await prisma.user.findUnique({where:{id:newUser.id}})
+        // console.log('este es el 36', theuser);
+        // @ts-ignore
+        const newCart = await prisma.cart.create({
+        // @ts-ignore
+            data:{userId:theuser.id,orderPrice:0}
+        })
+        // console.log('este es el 42', newCart);
+        
+        // console.log('este es el 44',newUser)
         
         return res.status(201).json({ ok: 'Usuario creado !'})
 
-    } catch (error) {
-        console.log(error);
-        return res.status(404).send ({ error: 'Error al crear el usuario' });
+    } catch (error:any) {
+        console.log(error.message);
+        return res.status(404).send (error.message );
     }
 })
 
@@ -61,7 +84,7 @@ router.post('/login', async (req:Request, res:Response) => {
         //Comparando Password
         
         const comparePassword = await bcrypt.compare( password, user.password );
-        console.log(comparePassword)
+        // console.log(comparePassword)
         
         if( !comparePassword ) {
             return res.status(403).json ({ error: 'Contraseña o Usuario Incorrecto'})
@@ -70,14 +93,9 @@ router.post('/login', async (req:Request, res:Response) => {
         //Generando Token
         const token = jwt.sign({ user_id: user.id }, process.env.JWT_SECRET || '');
 
-        // Obtener id para almacenar en localStorage
+        
 
-        const userStorage = await prisma.user.findUnique({
-            // @ts-ignore
-            where: { email: email }
-        });
-
-        return res.status(200).json({ token: token, user: userStorage});
+        return res.status(200).json({ token: token});
     } catch (error) {
         console.log(error);
         return res.status(400).send('Error al iniciar sesión');
@@ -109,5 +127,74 @@ router.get('/verify',[verifyToken], async (req:Request, res:Response) => {
     }
     }
 )
+
+// router.get('/verifyrole', async (req:Request, res:Response) => {
+
+//     const headerToken:any = req.headers.authorization;
+//     const token = headerToken.split(' ')[1];
+
+
+//     try {
+//         const decoded = jwt.verify(token, process.env.JWT_SECRET || '');
+//         console.log(decoded)
+//         //@ts-ignore
+//         req.user_id = decoded.user_id
+//         const user = await prisma.user.findUnique({
+//             where: {
+//             //@ts-ignore
+//               id: decoded.user_id,
+//             },
+//           })
+//             //@ts-ignore
+//             if(user.role === 'admin') return 'admin'
+//             //@ts-ignore
+//           if(user.role === 'user') return 'user'
+//           else{
+//             return false
+//           }
+// } catch (error) {
+//     console.log(error)
+// }
+
+// })
+
+
+router.get('/verifyrole', async (req:Request, res:Response, next:NextFunction) => {
+    try {
+        const headerToken:any = req.headers.authorization;
+        const token = headerToken.split(' ')[1];
+        // console.log(token);
+        // console.log(req)
+        
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || '');
+// console.log('soy decoded', decoded)
+            // @ts-ignore
+            req.user_id = decoded.user_id;
+            //@ts-ignore
+            // console.log(decoded.user_id)
+            const user = await prisma.user.findUnique({
+                where: {
+                    //@ts-ignore
+                    id: decoded.user_id,
+                },
+            })
+            
+            
+            //@ts-ignore
+            if(user.role === 'admin') return res.json({"role": 'admin', "id":req.user_id})
+            
+            //@ts-ignore
+            if(user.role === 'user') return res.json({"role": 'user', "id":req.user_id})
+            
+            //@ts-ignore
+            if(user.role !== 'admin' && user.role !== 'user') return res.json({"role": 'guest'})
+
+
+    } catch (error) {
+        console.log(error);
+        return res.status(401).send({ error: 'Invalid token' });
+    }
+})
 
 export default router;

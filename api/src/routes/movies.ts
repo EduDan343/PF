@@ -1,3 +1,4 @@
+require('dotenv').config()
 import {Router, Request, Response, NextFunction}  from 'express'
 import { PrismaClient } from '@prisma/client'
 import Stripe from "stripe";
@@ -7,6 +8,7 @@ const prisma = new PrismaClient()
 
 const router = Router()
 
+const {STRIPE_KEY} : any = process.env
 
 function isPremier(dateMovie:string):boolean {
     let date: Date = new Date();
@@ -256,6 +258,7 @@ router.get("/search/:id", async (req:Request,res:Response) =>{
                 }
             }
         })
+        console.log(movie)
         res.json(movie)
 
     }catch(e){
@@ -307,47 +310,78 @@ router.get('/search', async (req: Request, res:Response) =>{
     } catch (error) {
         res.status(404).json("no se encontro peli con ese nombre")
     }
-   
 })
 
 
 router.post("/checkout",async(req:Request,res:Response)=>{
 
-    const {ticket,amount,show,userId} = req.body
-    console.log(show)
-    const stripe = new Stripe("sk_test_51LKmPfJSzK67Ievut9CIjd8vY41BPktuezRzcVzIERjze7T5LEPDOmZ35auFdbt9mG5zTZFxXbsC0ZXTl96dPw4i00AaZ84pVQ",{apiVersion:"2020-08-27"})
-    const data:any={
-        username:"Ignacio Brunello",
-        password:"1234",
-        role:1
-    }
+    const {show,idUser,ticket} = req.body
+    const cart :any = await prisma.cart.findUnique({where:{userId:idUser},include:{candy:true,tickets:true}})
+    const stripe = new Stripe(STRIPE_KEY,{apiVersion:"2020-08-27"})
+     console.log(cart)
     try{
         const payment = await stripe.paymentIntents.create({
-            amount,
+            amount:cart.orderPrice,
             payment_method:ticket,
             currency:"USD",
             confirm:true,
         })
+        // console.log(payment)
         const sale = await prisma.sale.create({data:{
-            receipt:ticket,
-            userId:userId
+            receipt:payment.id,
+            // @ts-ignore
+            salePrice:cart.orderPrice,
+            user:{
+                connect:{id:cart.userId}
+            }
         }})
-        const room : any= await prisma.show.findUnique({where:{id:show},include:{room:{select:{id:true}}}})
-        // console.log(room?.room.id)
-        const seat:any = await prisma.seat.findFirst()
-        // console.log(seat.id)
-        const newticket = await prisma.ticket.createMany({
-            data:{
-                saleId:sale.id,
-                seatId:seat.id,
-                showId:show,
-                roomId:room.room.id
+        // const sale = await prisma.sale.create({data:{
+        //     receipt:ticket,
+        //     user:{
+        //         connect:{id:cart.userId}
+        //     }
+        // }})
+        const formatedSale = await prisma.sale.update({
+            where: {id: sale.id},
+            data : {
+                // @ts-ignore
+                dateFormat : String(sale.createdAt).slice(4,15)
             }
         })
+        for(let i=0;i<cart.candy.length;i++){
+        const candy = await prisma.candy.update({where:{id:cart.candy[i].id},data:{sale:{connect:{id:sale.id}},cart:{disconnect:true}}})
+        }
+        for(let i=0;i<cart.tickets.length;i++){
+            //@ts-ignore
+        const tickets = await prisma.tickets.update({where:{id:cart.tickets[i].id},data:{cart:{disconnect:true}}})
+        }
+        const room : any= await prisma.show.findUnique({where:{id:show},include:{room:{select:{id:true}}}})
+        // console.log(room?.room.id)
+        // console.log(seat.id)
+        // const candy: any = await prisma.candy.findUnique({where:{id:"fdba5610-1559-4f15-9890-1da57ecb5c60"}})
+        
+        const newticket = await prisma.ticket.createMany({
+            //@ts-ignore
+            data:{
+                saleId:sale.id,
+                showId:show
+            }
+        })
+        const update = await prisma.cart.update({where:{id:cart.id},data:{orderPrice:0}})
+        // console.log(update)
         // console.log(newticket)
         res.send("Payment received")
     }catch(error:any){
         res.send(error.message)
+    }
+})
+// http://localhost:3001/movies/getSales
+router.get('/getSales', async (req: Request, res:Response) =>{
+    try {
+        const sales = await prisma.sale.findMany({include:{user:true}})
+        return res.status(200).json(sales)
+    } catch (error) {
+        return res.status(404).json("no se encontraron ventas")
     }
 })
 

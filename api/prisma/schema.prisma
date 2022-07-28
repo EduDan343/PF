@@ -46,44 +46,61 @@ model Room {
   types  String
   seat   Seat[]
   show   Show[]
-  ticket Ticket[]
 }
 
 model Sale {
   id     String   @id @default(uuid()) @db.Uuid
   receipt String  @unique
   userId String   @db.Uuid
-  user   User     @relation(fields: [userId], references: [id])
+  salePrice Int
+  createdAt DateTime @default(now())
+  dateFormat String? @db.Text
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   ticket Ticket[]
+  candy  Candy[]
 }
 
 model Seat {
   id     Int     @id
   roomId Int
   room   Room    @relation(fields: [roomId], references: [id])
-  ticket Ticket?
 }
 
 model Show {
-  id      String   @id @default(uuid()) @db.Uuid
-  schedule String 
-  roomId  Int      
-  movieId String   @db.Uuid 
-  movie   Movie    @relation(fields: [movieId], references: [id])
-  room    Room     @relation(fields: [roomId], references: [id])
-  ticket  Ticket[]
+  id        String   @id @default(uuid()) @db.Uuid
+  schedule  String
+  type      String
+  day       String
+  seats     Int
+  roomId    Int      
+  movieId   String   @db.Uuid 
+  movie     Movie    @relation(fields: [movieId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id])
+  ticket    Ticket[]
+  tickets   Tickets[]
 }
 
 model Ticket {
+  id       String   @id @default(uuid()) @db.Uuid
+  saleId   String   @db.Uuid
+  showId   String   @db.Uuid
+  sale     Sale @relation(fields: [saleId],references: [id])
+  show     Show @relation(fields: [showId], references: [id])
+  cart     Cart? 
+}
+
+model Tickets {
   id     String   @id @default(uuid()) @db.Uuid
-  seatId Int      @unique
-  roomId Int
-  saleId String   @db.Uuid
-  showId String   @db.Uuid
-  room   Room @relation(fields: [roomId], references: [id])
-  sale   Sale @relation(fields: [saleId],references: [id])
-  seat   Seat @relation(fields: [seatId], references: [id])
-  show   Show @relation(fields: [showId], references: [id])
+  showId String?   @db.Uuid
+  seats  Int     
+  totalPrice  Int
+  createdAt DateTime @default(now())
+  dateFormat String? @db.Text
+  userId  String   @db.Uuid
+  cartId  String?   @db.Uuid
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cart    Cart?    @relation(fields: [cartId], references: [id])
+  show    Show?    @relation(fields: [showId], references: [id])
 }
 
 model User {
@@ -91,10 +108,45 @@ model User {
   username String @unique @db.Text
   password String @db.Text
   role     String @db.Text
+  email    String @unique
+  createdAt DateTime @default(now())
+  dateFormat String? @db.Text
   sale     Sale[]
   feedback Feedback[]
   comments Comment[]
-  email    String @unique
+  cart     Cart?
+  tickets  Tickets[] 
+}
+
+model Candy {
+  id         String @id @default(uuid()) @db.Uuid
+  name       String @db.Text
+  quantity   Int
+  totalPrice Int
+  cartId     String? @db.Uuid
+  saleId     String? @db.Uuid 
+  cart       Cart? @relation(fields: [cartId],references: [id])
+  sale       Sale? @relation(fields: [saleId],references: [id])
+}
+
+
+model Cart{
+  id         String @id @default(uuid()) @db.Uuid
+  ticketId   String? @db.Uuid @unique
+  userId     String @db.Uuid @unique
+  orderPrice Int @default (0)
+  candy      Candy[]
+  tickets    Tickets[]
+  ticket     Ticket? @relation(fields: [ticketId],references: [id])
+  user       User @relation(fields: [userId],references: [id], onDelete: Cascade)
+}
+
+model Menu{
+  id        Int @id @default(autoincrement())
+  name      String @unique
+  picture   String
+  price     Int
+  timestamp DateTime @updatedAt() 
 }
 
 enum Status {
